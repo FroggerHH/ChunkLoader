@@ -20,27 +20,35 @@ public class LoadLoadersPatch
     private static void LoadForceActive()
     {
         ZoneSystem.instance.GetGlobalKey("ForceActive", out string key);
-        PlaceLoaderPatch.initingLoaders = true;
         ParseForceActive(key);
-        Game.instance.StartCoroutine(WaiteForLoadAllLoaders());
+        Game.instance.StartCoroutine(FilterForceActive());
     }
 
-    private static IEnumerator WaiteForLoadAllLoaders()
+    private static IEnumerator FilterForceActive()
     {
-        ZoneSystem.instance.GetGlobalKey("ChunkLoadersCount", out string count);
-        int count_ = int.Parse(count);
-        yield return new WaitUntil(() =>  IsAllLoaderInited(count_));
-        PlaceLoaderPatch.initingLoaders = false;
-    }
+        yield return new WaitForSeconds(25);
 
-    private static bool IsAllLoaderInited(int count)
-    {
-        return PlaceLoaderPatch.initingLoadersCount == count;
+        if (Plugin.ForceActiveBuffer.Count > 0)
+        {
+            Plugin.ForceActive.Clear();
+            Plugin.ForceActive = Plugin.ForceActiveBuffer;
+        }
+
+        HashSet<Vector2i> ForceActive = new();
+
+        foreach (var i in Plugin.ForceActive)
+        {
+            if (!ForceActive.Contains(i)) ForceActive.Add(i);
+        }
+
+        Plugin.ForceActive = ForceActive;
+
+        Game.instance.StartCoroutine(FilterForceActive());
     }
 
     private static void ParseForceActive(string value)
     {
-        if(string.IsNullOrEmpty(value)) return;
+        if (string.IsNullOrEmpty(value)) return;
         Plugin.ForceActive = value.Split('|').Select(s => s.Trim()).Select(s => s.Split(',')).Where(s => s.Length == 2)
             .Select(
                 s =>

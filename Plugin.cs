@@ -20,6 +20,7 @@ internal class Plugin : BaseUnityPlugin
 
     internal static Plugin _self;
     public static HashSet<Vector2i> ForceActive = new();
+    public static HashSet<Vector2i> ForceActiveBuffer = new();
 
     #endregion
 
@@ -133,7 +134,6 @@ internal class Plugin : BaseUnityPlugin
 
         BuildPiece piece = new("ChunkLoader".ToLower(), "ChunkLoader_stone");
         piece.Category.Add(BuildPieceCategory.Misc);
-        piece.SnapshotPiece(piece.Prefab);
         piece.Crafting.Set(CraftingTable.Forge);
         piece.RequiredItems.Add("Stone", 25, true);
         piece.RequiredItems.Add("Thunderstone", 5, true);

@@ -11,13 +11,9 @@ namespace ChunkLoader;
 [HarmonyPatch(typeof(Piece), nameof(Piece.Awake))]
 public class PlaceLoaderPatch
 {
-    public static bool initingLoaders = false;
-    public static int initingLoadersCount = 0;
-
     [HarmonyPostfix]
     static void Postfix(Piece __instance)
     {
-        if (initingLoaders) return;
         __instance.StartCoroutine(WaiteForPlace(__instance));
     }
 
@@ -26,11 +22,7 @@ public class PlaceLoaderPatch
         yield return new WaitWhile(() => !piece.IsPlacedByPlayer());
 
         Plugin.ForceActive.Add(ZoneSystem.instance.GetZone(piece.transform.position));
-        var countKey = GetCountOfLoaders();
-        if (!int.TryParse(countKey, out var count)) count = 0;
-        ZoneSystem.instance.SetGlobalKey(string.Format("{0} {1}", "ChunkLoadersCount",
-            (count + 1).ToString((IFormatProvider)CultureInfo.InvariantCulture)));
-        initingLoadersCount++;
+        Plugin.ForceActiveBuffer.Add(ZoneSystem.instance.GetZone(piece.transform.position));
         SetForceActive();
     }
 
@@ -42,7 +34,6 @@ public class PlaceLoaderPatch
 
     private static void SetForceActive()
     {
-        if (initingLoaders) return;
         ZoneSystem.instance.SetGlobalKey(string.Format("{0} {1}", "ForceActive",
             SaveForceActive().ToString((IFormatProvider)CultureInfo.InvariantCulture)));
     }
