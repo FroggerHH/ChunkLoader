@@ -85,6 +85,7 @@
     <ItemGroup>
         <Compile Include="ConfigWrapper.cs" />
         <Compile Include="MaterialReplacer.cs" />
+        <Compile Include="Patch\FixEffectsPatch.cs" />
         <Compile Include="Patch\LoadLoadersPatch.cs" />
         <Compile Include="Patch\PlaceLoaderPatch.cs" />
         <Compile Include="Patch\ZoneLimits.cs" />

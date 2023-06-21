@@ -244,30 +244,6 @@ public class BuildPiece
         var wearNTear = Prefab.GetComponent<WearNTear>();
         MaterialReplacer.RegisterGameObjectForShaderSwap(Prefab,
             MaterialReplacer.ShaderType.UseUnityShader);
-
-        foreach (var effectData in piece.m_placeEffect.m_effectPrefabs)
-        {
-            MaterialReplacer.RegisterGameObjectForShaderSwap(effectData.m_prefab,
-                MaterialReplacer.ShaderType.UseUnityShader);
-        }
-
-        foreach (var effectData in wearNTear.m_destroyedEffect.m_effectPrefabs)
-        {
-            MaterialReplacer.RegisterGameObjectForShaderSwap(effectData.m_prefab,
-                MaterialReplacer.ShaderType.UseUnityShader);
-        }
-
-        foreach (var effectData in wearNTear.m_hitEffect.m_effectPrefabs)
-        {
-            MaterialReplacer.RegisterGameObjectForShaderSwap(effectData.m_prefab,
-                MaterialReplacer.ShaderType.UseUnityShader);
-        }
-
-        foreach (var effectData in wearNTear.m_switchEffect.m_effectPrefabs)
-        {
-            MaterialReplacer.RegisterGameObjectForShaderSwap(effectData.m_prefab,
-                MaterialReplacer.ShaderType.UseUnityShader);
-        }
     }
 
     private class ConfigurationManagerAttributes
