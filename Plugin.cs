@@ -15,11 +15,12 @@ internal class Plugin : BaseUnityPlugin
 {
     #region values
 
-    internal const string ModName = "ChunkLoader", ModVersion = "1.0.1", ModGUID = "com.Frogger." + ModName;
+    internal const string ModName = "ChunkLoader", ModVersion = "1.0.2", ModGUID = "com.Frogger." + ModName;
     internal static Harmony harmony = new(ModGUID);
 
     internal static Plugin _self;
     public static HashSet<Vector2i> ForceActive = new();
+    public static int loadersOnLocalPlayer = 0;
     public static HashSet<Vector2i> ForceActiveBuffer = new();
 
     #endregion
@@ -55,7 +56,7 @@ internal class Plugin : BaseUnityPlugin
 
     #region ConfigSettings
 
-    static string ConfigFileName = "com.Frogger.DiscordWard.cfg";
+    static string ConfigFileName = $"com.Frogger.{ModName}.cfg";
     DateTime LastConfigChange;
 
     public static readonly ConfigSync configSync = new(ModName)
@@ -125,14 +126,17 @@ internal class Plugin : BaseUnityPlugin
 
     #endregion
 
+    internal static ConfigEntry<int> chunkLoadersLimitByPlayer;
 
     private void Awake()
     {
         _self = this;
 
+        chunkLoadersLimitByPlayer = config("Main", nameof(chunkLoadersLimitByPlayer), 2, "");
+
         harmony.PatchAll();
 
-        BuildPiece piece = new("ChunkLoader".ToLower(), "ChunkLoader_stone");
+        BuildPiece piece = new("chunkloader", "ChunkLoader_stone");
         piece.Category.Add(BuildPieceCategory.Misc);
         piece.Crafting.Set(CraftingTable.Forge);
         piece.RequiredItems.Add("Stone", 25, true);

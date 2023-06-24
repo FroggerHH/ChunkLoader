@@ -78,6 +78,9 @@
         <Reference Include="UnityEngine.ParticleSystemModule">
           <HintPath>..\..\Unity\Unity Hub\versions\2020.3.36f1\Editor\Data\Managed\UnityEngine\UnityEngine.ParticleSystemModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.PhysicsModule">
+          <HintPath>..\..\Unity\Unity Hub\versions\2020.3.36f1\Editor\Data\Managed\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.UI">
           <HintPath>..\..\..\Steam\steamapps\common\Valheim\valheim_Data\Managed\UnityEngine.UI.dll</HintPath>
         </Reference>
@@ -86,6 +89,7 @@
         <Compile Include="ConfigWrapper.cs" />
         <Compile Include="MaterialReplacer.cs" />
         <Compile Include="Patch\FixEffectsPatch.cs" />
+        <Compile Include="Patch\LimitByPlayerPatch.cs" />
         <Compile Include="Patch\LoadLoadersPatch.cs" />
         <Compile Include="Patch\PlaceLoaderPatch.cs" />
         <Compile Include="Patch\ZoneLimits.cs" />

@@ -14,6 +14,7 @@ public class PlaceLoaderPatch
     [HarmonyPostfix]
     static void Postfix(Piece __instance)
     {
+        if (!__instance.name.StartsWith("ChunkLoader_stone")) return;
         __instance.StartCoroutine(WaiteForPlace(__instance));
     }
 
@@ -24,6 +25,7 @@ public class PlaceLoaderPatch
         Plugin.ForceActive.Add(ZoneSystem.instance.GetZone(piece.transform.position));
         Plugin.ForceActiveBuffer.Add(ZoneSystem.instance.GetZone(piece.transform.position));
         SetForceActive();
+        if (piece.IsCreator()) Plugin.loadersOnLocalPlayer++;
     }
 
     private static string GetCountOfLoaders()
