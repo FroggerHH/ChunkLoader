@@ -144,7 +144,9 @@ internal class Plugin : BaseUnityPlugin
         piece.RequiredItems.Add("SurtlingCore", 1, true);
         piece.Name
             .Russian("Колонна наблюдения")
-            .English("Observation column");
+            .English("Observation column")
+            .Abenaki()
+            .;
         piece.Description
             .Russian("Территория вокруг колонны всегда активна")
             .English("The area around the column is always active");
