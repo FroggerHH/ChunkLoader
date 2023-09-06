@@ -1,13 +1,9 @@
-﻿using BepInEx;
+﻿using System.Collections.Generic;
+using BepInEx;
 using BepInEx.Configuration;
-using HarmonyLib;
-using System;
-using System.Collections.Generic;
-using System.IO;
 using Extensions.Valheim;
 using PieceManager;
-using ServerSync;
-using UnityEngine;
+using static Extensions.Valheim.ModBase;
 
 namespace ChunkLoader;
 
@@ -15,134 +11,14 @@ namespace ChunkLoader;
 [BepInDependency("com.Frogger.NoUselessWarnings", BepInDependency.DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
-    #region values
+    internal const string ModName = "ChunkLoader",
+        ModVersion = "1.0.2",
+        ModGUID = $"com.{ModAuthor}.{ModName}",
+        ModAuthor = "Frogger";
 
-    internal const string ModName = "ChunkLoader", ModVersion = "1.0.2", ModGUID = "com.Frogger." + ModName;
-    internal static Harmony harmony = new(ModGUID);
-
-    internal static Plugin _self;
     public static HashSet<Vector2i> ForceActive = new();
     public static int loadersOnLocalPlayer = 0;
     public static HashSet<Vector2i> ForceActiveBuffer = new();
-
-    #endregion
-
-    #region tools
-
-    public static void Debug(object msg) { _self.Logger.LogInfo(msg); }
-
-    public void DebugError(object msg, bool showWriteToDev)
-    {
-        if (showWriteToDev)
-        {
-            msg += "Write to the developer and moderator if this happens often.";
-        }
-
-        Logger.LogError(msg);
-    }
-
-    public void DebugWarning(object msg, bool showWriteToDev)
-    {
-        if (showWriteToDev)
-        {
-            msg += "Write to the developer and moderator if this happens often.";
-        }
-
-        Logger.LogWarning(msg);
-    }
-
-    #endregion
-
-    #region ConfigSettings
-
-    static string ConfigFileName = $"com.Frogger.{ModName}.cfg";
-    DateTime LastConfigChange;
-
-    public static readonly ConfigSync configSync = new(ModName)
-        { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-
-    private static ConfigEntry<Toggle> serverConfigLocked = null!;
-
-    public static ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description,
-        bool synchronizedSetting = true)
-    {
-        ConfigEntry<T> configEntry = _self.Config.Bind(group, name, value, description);
-
-        SyncedConfigEntry<T> syncedConfigEntry = configSync.AddConfigEntry(configEntry);
-        syncedConfigEntry.SynchronizedConfig = synchronizedSetting;
-
-        return configEntry;
-    }
-
-    private ConfigEntry<T> config<T>(string group, string name, T value, string description,
-        bool synchronizedSetting = true)
-    {
-        return config(group, name, value, new ConfigDescription(description), synchronizedSetting);
-    }
-
-    void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
-    {
-        setter(config.Value);
-        config.SettingChanged += (_, _) => setter(config.Value);
-    }
-
-    public enum Toggle
-    {
-        On = 1,
-        Off = 0
-    }
-
-    #endregion
-
-    #region Config
-
-    private void SetupWatcher()
-    {
-        FileSystemWatcher fileSystemWatcher = new(Paths.ConfigPath, ConfigFileName);
-        fileSystemWatcher.Changed += ConfigChanged;
-        fileSystemWatcher.IncludeSubdirectories = true;
-        fileSystemWatcher.SynchronizingObject = ThreadingHelper.SynchronizingObject;
-        fileSystemWatcher.EnableRaisingEvents = true;
-    }
-
-    void ConfigChanged(object sender, FileSystemEventArgs e)
-    {
-        if ((DateTime.Now - LastConfigChange).TotalSeconds <= 5.0)
-        {
-            return;
-        }
-
-        LastConfigChange = DateTime.Now;
-        try
-        {
-            Config.Reload();
-        }
-        catch
-        {
-            DebugError("Can't reload Config", true);
-        }
-    }
-
-    internal void UpdateConfiguration()
-    {
-        try
-        {
-            ChunkLoaderMono.m_fuelItem =
-                ObjectDB.instance.GetItem(fuelItemConfig.Value) ?? ObjectDB.instance.GetItem("Thunderstone");
-            ChunkLoaderMono.m_infiniteFuel = infiniteFuelConfig.Value;
-            ChunkLoaderMono.m_maxFuel = maxFuelConfig.Value;
-            ChunkLoaderMono.m_startFuel = startFuelConfig.Value;
-            ChunkLoaderMono.minutesForOneFuelItem = minutesForOneFuelItemConfig.Value;
-
-            Debug("Configuration Received");
-        }
-        catch (Exception e)
-        {
-            DebugError($"Configuration error: {e.Message}", false);
-        }
-    }
-
-    #endregion
 
     internal static ConfigEntry<int> chunkLoadersLimitByPlayer;
     internal static ConfigEntry<int> maxFuelConfig;
@@ -153,21 +29,15 @@ internal class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        _self = this;
-        Config.SaveOnConfigSet = false;
-        SetupWatcher();
-        Config.ConfigReloaded += (_, _) => UpdateConfiguration();
-        Config.SaveOnConfigSet = true;
-        Config.Save();
+        var modBase = CreateMod(this, ModName, ModAuthor, ModVersion);
+        modBase.OnConfigurationChanged += UpdateConfiguration;
 
-        chunkLoadersLimitByPlayer = config("Main", "ChunkLoaders limit by player", 2, "");
-        maxFuelConfig = config("Fuelling", "Max fuel", 100, "");
-        startFuelConfig = config("Fuelling", "Start fuel", 1, "");
-        fuelItemConfig = config("Fuelling", "Fuel item", "Thunderstone", "");
-        minutesForOneFuelItemConfig = config("Fuelling", "Minutes for one fuel item", 5, "");
-        infiniteFuelConfig = config("Fuelling", "Infinite fuel", false, "");
-
-        harmony.PatchAll();
+        chunkLoadersLimitByPlayer = mod.config("Main", "ChunkLoaders limit by player", 2, "");
+        maxFuelConfig = mod.config("Fuelling", "Max fuel", 100, "");
+        startFuelConfig = mod.config("Fuelling", "Start fuel", 1, "");
+        fuelItemConfig = mod.config("Fuelling", "Fuel item", "Thunderstone", "");
+        minutesForOneFuelItemConfig = mod.config("Fuelling", "Minutes for one fuel item", 5, "");
+        infiniteFuelConfig = mod.config("Fuelling", "Infinite fuel", false, "");
 
         #region Piece
 
@@ -247,5 +117,16 @@ internal class Plugin : BaseUnityPlugin
         #endregion
 
         //LocalizationManager.Localizer.Load();
+    }
+
+    private static void UpdateConfiguration()
+    {
+        if (ObjectDB.instance)
+            ChunkLoaderMono.m_fuelItem =
+                ObjectDB.instance.GetItem(fuelItemConfig.Value) ?? ObjectDB.instance.GetItem("Thunderstone");
+        ChunkLoaderMono.m_infiniteFuel = infiniteFuelConfig.Value;
+        ChunkLoaderMono.m_maxFuel = maxFuelConfig.Value;
+        ChunkLoaderMono.m_startFuel = startFuelConfig.Value;
+        ChunkLoaderMono.minutesForOneFuelItem = minutesForOneFuelItemConfig.Value;
     }
 }

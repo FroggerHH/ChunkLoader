@@ -86,7 +86,6 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="ChunkLoaderInfo.cs" />
         <Compile Include="ChunkLoaderMono.cs" />
         <Compile Include="ConfigWrapper.cs" />
         <Compile Include="Extensions\EnumerableExtension.cs" />
@@ -106,6 +105,7 @@
         <Compile Include="Extensions\Valheim\RecipeExtension.cs" />
         <Compile Include="Extensions\Valheim\StringExtension.cs" />
         <Compile Include="Extensions\Valheim\WithPatch\RegisterObjectsInstances.cs" />
+        <Compile Include="Extensions\Valheim\WithPatch\UpdateConfigOnGameStart.cs" />
         <Compile Include="Extensions\Valheim\ZNetSceneExtension.cs" />
         <Compile Include="Extensions\Valheim\ZoneSystemExtension.cs" />
         <Compile Include="Extensions\VectorExtension.cs" />
