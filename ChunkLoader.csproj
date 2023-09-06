@@ -86,7 +86,29 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="ChunkLoaderInfo.cs" />
+        <Compile Include="ChunkLoaderMono.cs" />
         <Compile Include="ConfigWrapper.cs" />
+        <Compile Include="Extensions\EnumerableExtension.cs" />
+        <Compile Include="Extensions\GameObjectExtension.cs" />
+        <Compile Include="Extensions\MonoBehaviourExtension.cs" />
+        <Compile Include="Extensions\RendererExtension.cs" />
+        <Compile Include="Extensions\SimpleVector2.cs" />
+        <Compile Include="Extensions\SimpleVector3.cs" />
+        <Compile Include="Extensions\StringExtension.cs" />
+        <Compile Include="Extensions\TransformExtension.cs" />
+        <Compile Include="Extensions\Valheim\BaseMod.cs" />
+        <Compile Include="Extensions\Valheim\BiomeExtension.cs" />
+        <Compile Include="Extensions\Valheim\InventoryExtension.cs" />
+        <Compile Include="Extensions\Valheim\ItemDropExtension.cs" />
+        <Compile Include="Extensions\Valheim\MinimapExtension.cs" />
+        <Compile Include="Extensions\Valheim\ObjectDBExtension.cs" />
+        <Compile Include="Extensions\Valheim\RecipeExtension.cs" />
+        <Compile Include="Extensions\Valheim\StringExtension.cs" />
+        <Compile Include="Extensions\Valheim\WithPatch\RegisterObjectsInstances.cs" />
+        <Compile Include="Extensions\Valheim\ZNetSceneExtension.cs" />
+        <Compile Include="Extensions\Valheim\ZoneSystemExtension.cs" />
+        <Compile Include="Extensions\VectorExtension.cs" />
         <Compile Include="MaterialReplacer.cs" />
         <Compile Include="Patch\FixEffectsPatch.cs" />
         <Compile Include="Patch\LimitByPlayerPatch.cs" />
@@ -107,6 +129,12 @@
       <None Include="packages.config" />
     </ItemGroup>
     <ItemGroup>
+      <EmbeddedResource Include="translations\English.yml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
+      <EmbeddedResource Include="translations\Russian.yml">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </EmbeddedResource>
       <EmbeddedResource Include="assets\chunkloader">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </EmbeddedResource>
