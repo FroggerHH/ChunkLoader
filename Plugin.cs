@@ -117,7 +117,7 @@ internal class Plugin : BaseUnityPlugin
 
         #endregion
 
-        //LocalizationManager.Localizer.Load();
+        LocalizationManager.Localizer.Load();
     }
 
     private static void UpdateConfiguration()

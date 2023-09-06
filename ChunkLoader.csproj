@@ -50,6 +50,9 @@
         <Reference Include="BepInEx">
           <HintPath>..\..\..\Steam\steamapps\common\Valheim\BepInEx\core\BepInEx.dll</HintPath>
         </Reference>
+        <Reference Include="LocalizationManager">
+          <HintPath>..\Utils\LocalizationManager.dll</HintPath>
+        </Reference>
         <Reference Include="ServerSync">
           <HintPath>..\Utils\ServerSync.dll</HintPath>
         </Reference>

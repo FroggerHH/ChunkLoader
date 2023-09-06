@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Extensions;
@@ -6,6 +7,7 @@ namespace Extensions;
 public static class RendererExtension
 {
     private static readonly CoroutineHandler coroutineHandler;
+    private static List<Renderer> flashingRenderers = new();
 
     static RendererExtension()
     {
@@ -14,18 +16,25 @@ public static class RendererExtension
 
     public static void Flash(this Renderer renderer, Color color, Color returnColor, float time = 0.3f)
     {
+        if (flashingRenderers.Contains(renderer)) return;
         coroutineHandler.StartCoroutine(HighlightObject(renderer, color, returnColor, time));
     }
 
     private static IEnumerator HighlightObject(Renderer obj, Color color, Color returnColor, float time)
     {
+        flashingRenderers.Add(obj);
         var renderersInChildren = obj.GetComponentsInChildren<Renderer>();
         foreach (var renderer in renderersInChildren)
-        foreach (var material in renderer.materials)
         {
-            if (material.HasProperty("_EmissionColor"))
-                material.SetColor("_EmissionColor", color * 0.7f);
-            material.color = color;
+            if (obj.name == "Terrain")
+                Debug.LogWarning("Flashing terrain is not supported yet");
+
+            foreach (var material in renderer.materials)
+            {
+                if (material.HasProperty("_EmissionColor"))
+                    material.SetColor("_EmissionColor", color * 0.7f);
+                material.color = color;
+            }
         }
 
         yield return new WaitForSeconds(time);
@@ -36,6 +45,8 @@ public static class RendererExtension
                 material.SetColor("_EmissionColor", returnColor * 0f);
             material.color = returnColor;
         }
+
+        flashingRenderers.Remove(obj);
     }
 
     private class CoroutineHandler : MonoBehaviour

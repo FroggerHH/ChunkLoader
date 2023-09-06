@@ -54,7 +54,8 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
                                                      + ((int)m_maxFuel)
                                                      + " )\n[<color=yellow><b>$KEY_Use</b></color>] $piece_use "
                                                      + m_fuelItem.m_itemData.m_shared.m_name
-                                                     + "\n[<color=yellow><b>1-8</b></color>] $piece_useitem");
+                                                     + "\n[<color=yellow><b>1-8</b></color>] $piece_useitem"
+                                                     + "\n[<color=yellow><b>$KEY_AltPlace</b></color>] $showChunkArea");
     }
 
     public string GetHoverName() { return m_name; }
@@ -64,6 +65,11 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
         if (hold && (m_holdRepeatInterval <= 0.0 || Time.time - m_lastUseTime < m_holdRepeatInterval))
             return false;
         if (!m_nview.HasOwner()) m_nview.ClaimOwnership();
+        if (alt)
+        {
+            Heightmap.FindHeightmap(transform.position).m_meshRenderer.Flash(Color.green, Color.white, 1);
+            return true;
+        }
         var inventory = user.GetInventory();
         if (inventory == null) return true;
         if (m_infiniteFuel) return false;
