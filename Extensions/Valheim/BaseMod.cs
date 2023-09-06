@@ -38,7 +38,8 @@ public sealed class ModBase
         plugin.Config.SaveOnConfigSet = true;
         plugin.Config.Save();
 
-        serverConfigLocked = config("-General-", "ServerConfigLock", Toggle.Off, "");
+        serverConfigLocked = config("General", "ServerConfigLock", Toggle.Off, "");
+        configSync.AddLockingConfigEntry(serverConfigLocked);
 
         harmony.PatchAll();
     }

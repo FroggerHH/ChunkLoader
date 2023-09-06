@@ -4,6 +4,7 @@ using BepInEx.Configuration;
 using Extensions.Valheim;
 using PieceManager;
 using static Extensions.Valheim.ModBase;
+using static ChunkLoader.ChunkLoaderMono;
 
 namespace ChunkLoader;
 
@@ -29,8 +30,8 @@ internal class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        var modBase = CreateMod(this, ModName, ModAuthor, ModVersion);
-        modBase.OnConfigurationChanged += UpdateConfiguration;
+        CreateMod(this, ModName, ModAuthor, ModVersion);
+        mod.OnConfigurationChanged += UpdateConfiguration;
 
         chunkLoadersLimitByPlayer = mod.config("Main", "ChunkLoaders limit by player", 2, "");
         maxFuelConfig = mod.config("Fuelling", "Max fuel", 100, "");
@@ -121,12 +122,21 @@ internal class Plugin : BaseUnityPlugin
 
     private static void UpdateConfiguration()
     {
-        if (ObjectDB.instance)
-            ChunkLoaderMono.m_fuelItem =
-                ObjectDB.instance.GetItem(fuelItemConfig.Value) ?? ObjectDB.instance.GetItem("Thunderstone");
-        ChunkLoaderMono.m_infiniteFuel = infiniteFuelConfig.Value;
-        ChunkLoaderMono.m_maxFuel = maxFuelConfig.Value;
-        ChunkLoaderMono.m_startFuel = startFuelConfig.Value;
-        ChunkLoaderMono.minutesForOneFuelItem = minutesForOneFuelItemConfig.Value;
+        var objectDB = ObjectDB.instance;
+        if (objectDB)
+        {
+            var item = objectDB.GetItem(fuelItemConfig.Value);
+            if (item) m_fuelItem = item;
+            else
+            {
+                m_fuelItem = objectDB.GetItem("Thunderstone");
+                DebugWarning($"Item [{fuelItemConfig.Value}] not found. Using default [Thunderstone].");
+            }
+        }
+
+        m_infiniteFuel = infiniteFuelConfig.Value;
+        m_maxFuel = maxFuelConfig.Value;
+        m_startFuel = startFuelConfig.Value;
+        minutesForOneFuelItem = minutesForOneFuelItemConfig.Value;
     }
 }
