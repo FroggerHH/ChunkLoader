@@ -3,6 +3,7 @@ using BepInEx;
 using BepInEx.Configuration;
 using Extensions.Valheim;
 using PieceManager;
+using UnityEngine;
 using static Extensions.Valheim.ModBase;
 using static ChunkLoader.ChunkLoaderMono;
 
@@ -27,6 +28,7 @@ internal class Plugin : BaseUnityPlugin
     internal static ConfigEntry<string> fuelItemConfig;
     internal static ConfigEntry<int> minutesForOneFuelItemConfig;
     internal static ConfigEntry<bool> infiniteFuelConfig;
+    internal static ConfigEntry<Color> terrainFlashColorConfig;
 
     private void Awake()
     {
@@ -34,6 +36,7 @@ internal class Plugin : BaseUnityPlugin
         mod.OnConfigurationChanged += UpdateConfiguration;
 
         chunkLoadersLimitByPlayer = mod.config("Main", "ChunkLoaders limit by player", 2, "");
+        terrainFlashColorConfig = mod.config("Main", "Terrain flash color", Color.yellow, "");
         maxFuelConfig = mod.config("Fuelling", "Max fuel", 100, "");
         startFuelConfig = mod.config("Fuelling", "Start fuel", 1, "");
         fuelItemConfig = mod.config("Fuelling", "Fuel item", "Thunderstone", "");
@@ -138,5 +141,6 @@ internal class Plugin : BaseUnityPlugin
         m_maxFuel = maxFuelConfig.Value;
         m_startFuel = startFuelConfig.Value;
         minutesForOneFuelItem = minutesForOneFuelItemConfig.Value;
+        flashColor = terrainFlashColorConfig.Value;
     }
 }

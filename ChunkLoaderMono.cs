@@ -17,6 +17,8 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
     public static float m_maxFuel = 100f;
     public static bool m_infiniteFuel;
     public static ItemDrop m_fuelItem;
+    public static Color flashColor;
+    public static int minutesForOneFuelItem = 5;
 
     public EffectList m_fuelAddedEffects = new();
 
@@ -24,8 +26,6 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
     public float m_lastUseTime;
     private Renderer m_renderer;
     private Color matColor = Color.clear;
-
-    public static int minutesForOneFuelItem = 5;
 
     public void Awake()
     {
@@ -67,9 +67,10 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
         if (!m_nview.HasOwner()) m_nview.ClaimOwnership();
         if (alt)
         {
-            Heightmap.FindHeightmap(transform.position).m_meshRenderer.Flash(Color.green, Color.white, 1);
+            Heightmap.FindHeightmap(transform.position).m_meshRenderer.Flash(flashColor, Color.white, 1.5f);
             return true;
         }
+
         var inventory = user.GetInventory();
         if (inventory == null) return true;
         if (m_infiniteFuel) return false;
