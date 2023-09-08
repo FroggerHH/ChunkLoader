@@ -14,12 +14,12 @@ namespace ChunkLoader;
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.0.2",
+        ModVersion = "1.1.0",
         ModGUID = $"com.{ModAuthor}.{ModName}",
         ModAuthor = "Frogger";
 
     public static HashSet<Vector2i> ForceActive = new();
-    public static int loadersOnLocalPlayer = 0;
+    public static int currentLoaders = 0;
     public static HashSet<Vector2i> ForceActiveBuffer = new();
 
     internal static ConfigEntry<int> chunkLoadersLimitByPlayer;

@@ -1,2 +1,4 @@
 ChunkLoader_none: "none"
 showChunkArea: "Show scope"
+youHaveTooManyChunkLoadersPlaced: "You have too many observation columns"
+chunkLoaderAlreadyPlacedInArea: "An observation column has already been placed in this area"

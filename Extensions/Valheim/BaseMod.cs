@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -41,7 +42,7 @@ public sealed class ModBase
         serverConfigLocked = config("General", "ServerConfigLock", Toggle.On, "");
         configSync.AddLockingConfigEntry(serverConfigLocked);
 
-        harmony.PatchAll();
+        Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), ModGUID);
     }
 
     public static implicit operator bool(ModBase modBase) { return modBase != null; }

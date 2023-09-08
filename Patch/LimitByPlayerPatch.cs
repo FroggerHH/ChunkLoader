@@ -1,41 +1,53 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using Extensions.Valheim;
 using HarmonyLib;
-using UnityEngine;
+using static MessageHud.MessageType;
+using static ChunkLoader.Plugin;
+using static Player;
+using static Player.PlacementStatus;
 
 namespace ChunkLoader;
 
 [HarmonyPatch]
 public class LimitByPlayerPatch
 {
-    [HarmonyPatch(typeof(Player), nameof(Player.HaveRequirements), typeof(Piece), typeof(Player.RequirementMode)),
-     HarmonyPostfix]
-    static void PatchAdd(Player __instance, Piece piece, Player.RequirementMode mode, ref bool __result)
+    [HarmonyPatch(typeof(Player), nameof(Player.PlacePiece))] [HarmonyPrefix] [HarmonyWrapSafe]
+    private static bool PatchAdd(Player __instance, Piece piece, ref bool __result)
     {
-        if (Player.m_debugMode)
-            return;
+        if (Player.m_debugMode ||
+            __instance != m_localPlayer ||
+            !piece.name.StartsWith("ChunkLoader_stone")) return true;
 
-        if (__result == false) return;
-        if (Plugin.loadersOnLocalPlayer < Plugin.chunkLoadersLimitByPlayer.Value) return;
-        __result = false;
+        if (ForceActive.Contains(ZoneSystem.instance.GetZone(m_localPlayer.m_placementGhost.transform.position)))
+        {
+            __result = false;
+            Message("$chunkLoaderAlreadyPlacedInArea");
+            m_localPlayer.m_placementStatus = Invalid;
+            return false;
+        }
+
+        if (currentLoaders >= chunkLoadersLimitByPlayer.Value)
+        {
+            __result = false;
+            Message("$youHaveTooManyChunkLoadersPlaced");
+            m_localPlayer.m_placementStatus = Invalid;
+            return false;
+        }
+
+
+        return true;
     }
 
-    [HarmonyPatch(typeof(Player), nameof(Player.RemovePiece)), HarmonyPostfix]
-    static void PatchRemove(Player __instance, bool __result)
+    private static void Message(string msg) => m_localPlayer.Message(Center, msg);
+
+    [HarmonyPatch(typeof(Piece), nameof(Piece.OnDestroy))] [HarmonyPostfix]
+    private static void PatchRemove(Piece __instance)
     {
-        if (__result == false) return;
-        RaycastHit hitInfo;
-        if (Physics.Raycast(GameCamera.instance.transform.position, GameCamera.instance.transform.forward, out hitInfo,
-                50f, __instance.m_removeRayMask) && Vector3.Distance(hitInfo.point, __instance.m_eye.position) <
-            __instance.m_maxPlaceDistance)
-        {
-            Piece piece = hitInfo.collider.GetComponentInParent<Piece>();
-            if (!piece) return;
-            if (!piece.name.StartsWith("ChunkLoader_stone")) return;
-            Plugin.loadersOnLocalPlayer--;
-        }
+        if (!__instance.name.Contains("ChunkLoader_stone")) return;
+        currentLoaders--;
+        currentLoaders = Math.Max(0, currentLoaders);
+        ForceActive.Remove(ZoneSystem.instance.GetZone(__instance.transform.position));
+        ForceActiveBuffer.Remove(ZoneSystem.instance.GetZone(__instance.transform.position));
     }
 }
