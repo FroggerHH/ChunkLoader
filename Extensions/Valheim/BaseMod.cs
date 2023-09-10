@@ -15,9 +15,9 @@ public sealed class ModBase
         ModName = modName;
         ModAuthor = modAuthor;
         ModVersion = modVersion;
-        ModGUID = "com." + ModAuthor + '.' + ModName;
+        ModGUID = $"com.{ModAuthor}.{ModName}";
         harmony = new Harmony(ModGUID);
-        ConfigFileName = $"com.{ModAuthor}.{ModName}.cfg";
+        ConfigFileName = $"{ModGUID}.cfg";
     }
 
     public static ModBase CreateMod(BaseUnityPlugin plugin, string modName, string modAuthor, string modVersion)
@@ -33,16 +33,18 @@ public sealed class ModBase
 
     private void Init()
     {
+        configSync = new(ModName)
+            { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
         plugin.Config.SaveOnConfigSet = false;
         SetupWatcher();
         plugin.Config.ConfigReloaded += (_, _) => UpdateConfiguration();
-        plugin.Config.SaveOnConfigSet = true;
-        plugin.Config.Save();
 
         serverConfigLocked = config("General", "ServerConfigLock", Toggle.On, "");
         configSync.AddLockingConfigEntry(serverConfigLocked);
 
-        Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), ModGUID);
+        plugin.Config.SaveOnConfigSet = true;
+        plugin.Config.Save();
+        harmony.PatchAll();
     }
 
     public static implicit operator bool(ModBase modBase) { return modBase != null; }
@@ -86,12 +88,9 @@ public sealed class ModBase
 
     #region Core
 
-    private static string ConfigFileName = "-1";
+    private string ConfigFileName = "-1";
     private DateTime LastConfigChange;
-
-    public readonly ConfigSync configSync = new(ModName)
-        { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-
+    private ConfigSync configSync;
     private static ConfigEntry<Toggle> serverConfigLocked = null!;
 
     public ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description,
@@ -150,14 +149,11 @@ public sealed class ModBase
         try
         {
             OnConfigurationChanged?.Invoke();
-
-            var sucsessMsg = "Configuration Received";
-            Debug(sucsessMsg);
+            Debug("Configuration Received");
         }
         catch (Exception e)
         {
-            object errorMsg = $"Configuration error: {e.Message}";
-            DebugError(errorMsg, false);
+            DebugError($"Configuration error: {e.Message}", false);
         }
     }
 

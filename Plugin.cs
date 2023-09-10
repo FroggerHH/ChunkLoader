@@ -14,7 +14,7 @@ namespace ChunkLoader;
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.1.0",
+        ModVersion = "1.1.1",
         ModGUID = $"com.{ModAuthor}.{ModName}",
         ModAuthor = "Frogger";
 
