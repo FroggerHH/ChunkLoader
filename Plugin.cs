@@ -1,21 +1,18 @@
-﻿using System.Collections.Generic;
-using BepInEx;
+﻿using BepInEx;
 using BepInEx.Configuration;
-using Extensions.Valheim;
+using LocalizationManager;
 using PieceManager;
-using UnityEngine;
-using static Extensions.Valheim.ModBase;
 using static ChunkLoader.ChunkLoaderMono;
 
 namespace ChunkLoader;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
-[BepInDependency("com.Frogger.NoUselessWarnings", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("com.Frogger.NoUselessWarnings", DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.1.1",
-        ModGUID = $"com.{ModAuthor}.{ModName}",
+        ModVersion = "1.2.1",
+        ModGUID = $"com.{ModAuthor}.{ModName}", 
         ModAuthor = "Frogger";
 
     public static HashSet<Vector2i> ForceActive = new();
@@ -47,7 +44,7 @@ internal class Plugin : BaseUnityPlugin
 
         var piece = new BuildPiece("chunkloader", "ChunkLoader_stone");
         piece.Prefab.AddComponent<ChunkLoaderMono>();
-        piece.Category.Add(BuildPieceCategory.Misc);
+        piece.Category.Set(BuildPieceCategory.Misc);
         piece.Crafting.Set(CraftingTable.Forge);
         piece.RequiredItems.Add("Stone", 25, true);
         piece.RequiredItems.Add("Thunderstone", 5, true);
@@ -120,7 +117,7 @@ internal class Plugin : BaseUnityPlugin
 
         #endregion
 
-        LocalizationManager.Localizer.Load();
+        Localizer.Load();
     }
 
     private static void UpdateConfiguration()
@@ -129,8 +126,10 @@ internal class Plugin : BaseUnityPlugin
         if (objectDB)
         {
             var item = objectDB.GetItem(fuelItemConfig.Value);
-            if (item) m_fuelItem = item;
-            else
+            if (item)
+            {
+                m_fuelItem = item;
+            } else
             {
                 m_fuelItem = objectDB.GetItem("Thunderstone");
                 DebugWarning($"Item [{fuelItemConfig.Value}] not found. Using default [Thunderstone].");

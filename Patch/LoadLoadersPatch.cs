@@ -1,16 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using HarmonyLib;
-using UnityEngine;
-
-namespace ChunkLoader;
+﻿namespace ChunkLoader;
 
 [HarmonyPatch(typeof(Game), nameof(Game.SpawnPlayer))]
 public class LoadLoadersPatch
 {
     [HarmonyPostfix]
-    static void Postfix(Game __instance)
+    private static void Postfix(Game __instance)
     {
         if (!__instance.m_firstSpawn) return;
 
@@ -19,7 +13,7 @@ public class LoadLoadersPatch
 
     private static void LoadForceActive()
     {
-        ZoneSystem.instance.GetGlobalKey("ForceActive", out string key);
+        instance.GetGlobalKey("ForceActive", out var key);
         ParseForceActive(key);
         Game.instance.StartCoroutine(FilterForceActive());
     }
@@ -28,18 +22,17 @@ public class LoadLoadersPatch
     {
         yield return new WaitForSeconds(25);
 
-        if (Plugin.ForceActiveBuffer.Count > 0)
+        if (ForceActiveBuffer.Count > 0)
         {
             Plugin.ForceActive.Clear();
-            Plugin.ForceActive = Plugin.ForceActiveBuffer;
+            Plugin.ForceActive = ForceActiveBuffer;
         }
 
         HashSet<Vector2i> ForceActive = new();
 
         foreach (var i in Plugin.ForceActive)
-        {
-            if (!ForceActive.Contains(i)) ForceActive.Add(i);
-        }
+            if (!ForceActive.Contains(i))
+                ForceActive.Add(i);
 
         Plugin.ForceActive = ForceActive;
 
@@ -49,7 +42,7 @@ public class LoadLoadersPatch
     private static void ParseForceActive(string value)
     {
         if (string.IsNullOrEmpty(value)) return;
-        Plugin.ForceActive = value.Split('|').Select(s => s.Trim()).Select(s => s.Split(',')).Where(s => s.Length == 2)
+        ForceActive = value.Split('|').Select(s => s.Trim()).Select(s => s.Split(',')).Where(s => s.Length == 2)
             .Select(
                 s =>
                 {

@@ -1,17 +1,9 @@
-﻿using System;
-using Extensions;
-using Extensions.Valheim;
-using UnityEngine;
-using static ChunkLoader.Plugin;
-
-namespace ChunkLoader;
+﻿namespace ChunkLoader;
 
 public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
 {
     public const string m_name = "$piece_ChunkLoader_stone";
     private static readonly float disabledEmission = 6;
-    public ZNetView m_nview;
-    public Piece m_piece;
 
     public static float m_startFuel = 1f;
     public static float m_maxFuel = 100f;
@@ -19,6 +11,8 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
     public static ItemDrop m_fuelItem;
     public static Color flashColor;
     public static int minutesForOneFuelItem = 5;
+    public ZNetView m_nview;
+    public Piece m_piece;
 
     public EffectList m_fuelAddedEffects = new();
 
@@ -51,7 +45,7 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
         if (!m_nview.IsValid() || m_infiniteFuel) return string.Empty;
         return Localization.instance.Localize(m_name + " ( $piece_fire_fuel "
                                                      + Mathf.Ceil(m_nview.GetZDO().GetFloat(ZDOVars.s_fuel)) + "/"
-                                                     + ((int)m_maxFuel)
+                                                     + (int)m_maxFuel
                                                      + " )\n[<color=yellow><b>$KEY_Use</b></color>] $piece_use "
                                                      + m_fuelItem.m_itemData.m_shared.m_name
                                                      + "\n[<color=yellow><b>1-8</b></color>] $piece_useitem"
@@ -67,7 +61,7 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
         if (!m_nview.HasOwner()) m_nview.ClaimOwnership();
         if (alt)
         {
-            Heightmap.FindHeightmap(transform.position).m_meshRenderer.Flash(flashColor, Color.white, 1.5f);
+            FindHeightmap(transform.position).m_meshRenderer.Flash(flashColor, Color.white, 1.5f);
             return true;
         }
 
@@ -94,7 +88,7 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
         return false;
     }
 
-    public bool UseItem(Humanoid user, ItemDrop.ItemData item)
+    public bool UseItem(Humanoid user, ItemData item)
     {
         if (item.m_shared.m_name == m_fuelItem.m_itemData.m_shared.m_name && !m_infiniteFuel)
         {
@@ -118,7 +112,7 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
 
     public void UpdateState()
     {
-        var zone = ZoneSystem.instance.GetZone(transform.position);
+        var zone = instance.GetZone(transform.position);
         if (IsBurning())
         {
             if (m_renderer && matColor != Color.clear && m_renderer.material.HasProperty("_EmissionColor"))

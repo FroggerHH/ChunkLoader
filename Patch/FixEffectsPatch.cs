@@ -1,18 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using HarmonyLib;
-using UnityEngine;
-
-namespace ChunkLoader;
+﻿namespace ChunkLoader;
 
 [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Awake))]
 public class FixEffectsPatch
 {
     [HarmonyPostfix]
-    static void Postfix(ZNetScene __instance)
+    private static void Postfix(ZNetScene __instance)
     {
         var chunkLoader = __instance.GetPrefab("ChunkLoader_stone");
         var guard_stone = __instance.GetPrefab("guard_stone");
