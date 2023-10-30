@@ -358,13 +358,15 @@ public class BuildPiece
                 piece.activeTools = cfg.tools.Value.Split(',').Select(s => s.Trim()).ToArray();
                 cfg.tools.SettingChanged += (_, _) =>
                 {
-                    var inventories = Player.s_players.Select(p => p.GetInventory())
-                        .Concat(Object.FindObjectsOfType<Container>().Select(c => c.GetInventory()))
-                        .Where(c => c is not null).ToArray();
-                    var tools = ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>())
-                        .Where(c => c && c.GetComponent<ZNetView>()).Concat(s_instances)
+                    var inventories = s_players.Select(p => p.GetInventory())
+                        .Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null)
+                        .ToArray();
+                    var tools = ObjectDB.instance.m_items
+                        .Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>())
+                        .Concat(s_instances)
                         .Select(i =>
-                            new KeyValuePair<string, ItemData>(Utils.GetPrefabName(i.gameObject), i.m_itemData))
+                            new KeyValuePair<string, ItemData>(Utils.GetPrefabName(i.gameObject),
+                                i.m_itemData))
                         .Concat(inventories.SelectMany(i => i.GetAllItems()).Select(i =>
                             new KeyValuePair<string, ItemData>(i.m_dropPrefab.name, i)))
                         .Where(kv => kv.Value.m_shared.m_buildPieces).GroupBy(kv => kv.Key).ToDictionary(g => g.Key,
@@ -384,8 +386,8 @@ public class BuildPiece
                                     if (!table.m_pieces.Contains(piece.Prefab))
                                         table.m_pieces.Add(piece.Prefab);
 
-                        if (Player.m_localPlayer && Player.m_localPlayer.m_buildPieces)
-                            Player.m_localPlayer.SetPlaceMode(Player.m_localPlayer.m_buildPieces);
+                        if (m_localPlayer && m_localPlayer.m_buildPieces)
+                            m_localPlayer.SetPlaceMode(m_localPlayer.m_buildPieces);
                     }
                 };
 
@@ -633,7 +635,7 @@ public class BuildPiece
         sideLight.cullingMask = 1 << layer;
         sideLight.intensity = lightIntensity;
 
-        GameObject visual = Object.Instantiate(prefab);
+        var visual = Instantiate(prefab);
         foreach (var child in visual.GetComponentsInChildren<Transform>()) child.gameObject.layer = layer;
 
         visual.transform.position = Vector3.zero;
@@ -679,12 +681,12 @@ public class BuildPiece
         camera.targetTexture.Release();
         camera.gameObject.SetActive(false);
         visual.SetActive(false);
-        Object.DestroyImmediate(visual);
+        DestroyImmediate(visual);
 
-        Object.Destroy(camera);
-        Object.Destroy(sideLight);
-        Object.Destroy(camera.gameObject);
-        Object.Destroy(sideLight.gameObject);
+        Destroy(camera);
+        Destroy(sideLight);
+        Destroy(camera.gameObject);
+        Destroy(sideLight.gameObject);
     }
 
     private static void DrawConfigTable(ConfigEntryBase cfg)
@@ -1214,8 +1216,10 @@ public static class PiecePrefabManager
             transpiler: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(PiecePrefabManager),
                 nameof(UpdateAvailable_Transpiler))));
         harmony.Patch(AccessTools.DeclaredMethod(typeof(PieceTable), nameof(PieceTable.UpdateAvailable)),
-            new HarmonyMethod(AccessTools.DeclaredMethod(typeof(PiecePrefabManager), nameof(UpdateAvailable_Prefix))),
-            new HarmonyMethod(AccessTools.DeclaredMethod(typeof(PiecePrefabManager), nameof(UpdateAvailable_Postfix))));
+            new HarmonyMethod(AccessTools.DeclaredMethod(typeof(PiecePrefabManager),
+                nameof(UpdateAvailable_Prefix))),
+            new HarmonyMethod(AccessTools.DeclaredMethod(typeof(PiecePrefabManager),
+                nameof(UpdateAvailable_Postfix))));
         harmony.Patch(AccessTools.DeclaredMethod(typeof(Player), nameof(Player.SetPlaceMode)),
             postfix: new HarmonyMethod(AccessTools.DeclaredMethod(typeof(PiecePrefabManager),
                 nameof(Patch_SetPlaceMode))));
@@ -1363,10 +1367,10 @@ public static class PiecePrefabManager
             Hud.instance.m_pieceCategoryTabs = Hud.instance.m_pieceCategoryTabs.AddItem(tab).ToArray();
         }
 
-        if (Player.m_localPlayer && Player.m_localPlayer.m_buildPieces)
+        if (m_localPlayer && m_localPlayer.m_buildPieces)
         {
-            RepositionCategories(Player.m_localPlayer.m_buildPieces);
-            Player.m_localPlayer.UpdateAvailablePiecesList();
+            RepositionCategories(m_localPlayer.m_buildPieces);
+            m_localPlayer.UpdateAvailablePiecesList();
         }
     }
 
@@ -1374,7 +1378,7 @@ public static class PiecePrefabManager
     {
         var categoryRoot = Hud.instance.m_pieceCategoryRoot.transform;
 
-        GameObject newTab = Object.Instantiate(Hud.instance.m_pieceCategoryTabs[0], categoryRoot);
+        var newTab = Instantiate(Hud.instance.m_pieceCategoryTabs[0], categoryRoot);
         newTab.SetActive(false);
         newTab.GetOrAddComponent<UIInputHandler>().m_onLeftDown += Hud.instance.OnLeftClickCategory;
 
@@ -1465,7 +1469,8 @@ public static class PiecePrefabManager
         var visibleTabs = VisibleTabCount(visibleCategories);
 
         var tabAnchorX = -tabSize.x * maxHorizontalTabs / 2f + tabSize.x / 2f;
-        var tabAnchorY = (tabSize.y + verticalSpacing) * Mathf.Floor((float)(visibleTabs - 1) / maxHorizontalTabs) + 5f;
+        var tabAnchorY = (tabSize.y + verticalSpacing) * Mathf.Floor((float)(visibleTabs - 1) / maxHorizontalTabs)
+                         + 5f;
         var tabAnchor = new Vector2(tabAnchorX, tabAnchorY);
 
         var tabIndex = 0;
@@ -1506,8 +1511,8 @@ public static class PiecePrefabManager
             DebugWarning("RefreshCategories: Could not find background image");
         }
 
-        if ((int)Player.m_localPlayer.m_buildPieces.m_selectedCategory >= Hud.instance.m_buildCategoryNames.Count)
-            Player.m_localPlayer.m_buildPieces.SetCategory((int)visibleCategories.First());
+        if ((int)m_localPlayer.m_buildPieces.m_selectedCategory >= Hud.instance.m_buildCategoryNames.Count)
+            m_localPlayer.m_buildPieces.SetCategory((int)visibleCategories.First());
 
         Hud.instance.GetComponentInParent<Localize>().RefreshLocalization();
     }

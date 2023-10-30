@@ -1,48 +1,30 @@
-﻿using static MessageHud.MessageType;
-using static Player;
-using static Player.PlacementStatus;
-
-namespace ChunkLoader;
+﻿namespace ChunkLoader;
 
 [HarmonyPatch]
 public class LimitByPlayerPatch
 {
-    [HarmonyPatch(typeof(Player), nameof(Player.PlacePiece))] [HarmonyPrefix] [HarmonyWrapSafe]
-    private static bool PatchAdd(Player __instance, Piece piece, ref bool __result)
+    [HarmonyPatch(typeof(Player), nameof(Player.UpdatePlacementGhost))]
+    [HarmonyPostfix]
+    private static void Patch(Player __instance)
     {
-        if (m_debugMode ||
-            __instance != m_localPlayer ||
-            !piece.name.StartsWith("ChunkLoader_stone")) return true;
+        if (!Player.m_localPlayer || Player.m_localPlayer != __instance) return;
+        if (__instance.m_placementGhost?.GetPrefabName() != "ChunkLoader_stone") return;
+        var piece = __instance.m_placementGhost?.GetComponent<Piece>();
+        if (!piece) return;
 
-        if (ForceActive.Contains(instance.GetZone(m_localPlayer.m_placementGhost.transform.position)))
+        var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
+        if (zdos.Count >= chunkLoadersLimitByPlayer.Value)
         {
-            __result = false;
-            Message("$chunkLoaderAlreadyPlacedInArea");
-            m_localPlayer.m_placementStatus = Invalid;
-            return false;
-        }
-
-        if (currentLoaders >= chunkLoadersLimitByPlayer.Value)
-        {
-            __result = false;
+            __instance.m_placementStatus = Player.PlacementStatus.Invalid;
+            __instance.SetPlacementGhostValid(false);
             Message("$youHaveTooManyChunkLoadersPlaced");
-            m_localPlayer.m_placementStatus = Invalid;
-            return false;
+        } else if (zdos.Any(x => x.GetPosition().GetZone() == m_localPlayer.transform.position.GetZone()))
+        {
+            __instance.m_placementStatus = Player.PlacementStatus.Invalid;
+            __instance.SetPlacementGhostValid(false);
+            Message("$chunkLoaderAlreadyPlacedInArea");
         }
 
-
-        return true;
-    }
-
-    private static void Message(string msg) { m_localPlayer.Message(Center, msg); }
-
-    [HarmonyPatch(typeof(Piece), nameof(Piece.OnDestroy))] [HarmonyPostfix]
-    private static void PatchRemove(Piece __instance)
-    {
-        if (!__instance.name.Contains("ChunkLoader_stone")) return;
-        currentLoaders--;
-        currentLoaders = Math.Max(0, currentLoaders);
-        ForceActive.Remove(instance.GetZone(__instance.transform.position));
-        ForceActiveBuffer.Remove(instance.GetZone(__instance.transform.position));
+        void Message(string msg) { m_localPlayer.Message(Center, msg); }
     }
 }

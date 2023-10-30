@@ -2,6 +2,7 @@
 using BepInEx.Configuration;
 using LocalizationManager;
 using PieceManager;
+using ServerSync;
 using static ChunkLoader.ChunkLoaderMono;
 
 namespace ChunkLoader;
@@ -11,13 +12,12 @@ namespace ChunkLoader;
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.2.1",
-        ModGUID = $"com.{ModAuthor}.{ModName}", 
+        ModVersion = "1.3.0",
+        ModGUID = $"com.{ModAuthor}.{ModName}",
         ModAuthor = "Frogger";
 
     public static HashSet<Vector2i> ForceActive = new();
-    public static int currentLoaders = 0;
-    public static HashSet<Vector2i> ForceActiveBuffer = new();
+    public static readonly int prefabHash = "ChunkLoader_stone".GetStableHashCode();
 
     internal static ConfigEntry<int> chunkLoadersLimitByPlayer;
     internal static ConfigEntry<int> maxFuelConfig;
@@ -29,16 +29,19 @@ internal class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        CreateMod(this, ModName, ModAuthor, ModVersion);
-        mod.OnConfigurationChanged += UpdateConfiguration;
+        CreateMod(this, ModName, ModAuthor, ModVersion, ModGUID);
+        EnableImportantZDOs();
+        RegisterImportantZDO(prefabHash);
+        Debug("ChunkLoader_stone prefabHash = " + prefabHash);
+        OnConfigurationChanged += UpdateConfiguration;
 
-        chunkLoadersLimitByPlayer = mod.config("Main", "ChunkLoaders limit by player", 2, "");
-        terrainFlashColorConfig = mod.config("Main", "Terrain flash color", Color.yellow, "");
-        maxFuelConfig = mod.config("Fuelling", "Max fuel", 100, "");
-        startFuelConfig = mod.config("Fuelling", "Start fuel", 1, "");
-        fuelItemConfig = mod.config("Fuelling", "Fuel item", "Thunderstone", "");
-        minutesForOneFuelItemConfig = mod.config("Fuelling", "Minutes for one fuel item", 5, "");
-        infiniteFuelConfig = mod.config("Fuelling", "Infinite fuel", false, "");
+        chunkLoadersLimitByPlayer = config("Main", "ChunkLoaders limit by player", 2, "");
+        terrainFlashColorConfig = config("Main", "Terrain flash color", Color.yellow, "");
+        maxFuelConfig = config("Fuelling", "Max fuel", 100, "");
+        startFuelConfig = config("Fuelling", "Start fuel", 1, "");
+        fuelItemConfig = config("Fuelling", "Fuel item", "Thunderstone", "");
+        minutesForOneFuelItemConfig = config("Fuelling", "Minutes for one fuel item", 5, "");
+        infiniteFuelConfig = config("Fuelling", "Infinite fuel", false, "");
 
         #region Piece
 
@@ -118,7 +121,26 @@ internal class Plugin : BaseUnityPlugin
         #endregion
 
         Localizer.Load();
+        InvokeRepeating(nameof(UpdateForceActive), 5, 2);
     }
+
+    private void UpdateForceActive()
+    {
+        try
+        {
+            if (ZDOMan.instance == null) return;
+            var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
+            ForceActive.Clear();
+            foreach (var zdo in zdos)
+                if (zdo.GetBool(ChunkLoaderMono.burningZDOKey))
+                    ForceActive.Add(zdo.GetPosition().GetZone());
+        }
+        catch (Exception e)
+        {
+            DebugError($"Failed to update force active: {e.Message}");
+        }
+    }
+
 
     private static void UpdateConfiguration()
     {
@@ -126,10 +148,8 @@ internal class Plugin : BaseUnityPlugin
         if (objectDB)
         {
             var item = objectDB.GetItem(fuelItemConfig.Value);
-            if (item)
-            {
-                m_fuelItem = item;
-            } else
+            if (item) m_fuelItem = item;
+            else
             {
                 m_fuelItem = objectDB.GetItem("Thunderstone");
                 DebugWarning($"Item [{fuelItemConfig.Value}] not found. Using default [Thunderstone].");

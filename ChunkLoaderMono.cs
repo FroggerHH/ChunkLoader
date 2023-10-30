@@ -1,8 +1,9 @@
 ﻿namespace ChunkLoader;
 
-public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
+public class ChunkLoaderMono : SlowUpdate, Hoverable, Interactable
 {
     public const string m_name = "$piece_ChunkLoader_stone";
+    public const string burningZDOKey = "IsBurning";
     private static readonly float disabledEmission = 6;
 
     public static float m_startFuel = 1f;
@@ -21,11 +22,13 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
     private Renderer m_renderer;
     private Color matColor = Color.clear;
 
-    public void Awake()
+    public override void Awake()
     {
+        base.Awake();
         m_fuelItem = ObjectDB.instance.GetItem("Thunderstone");
         m_nview = gameObject.GetComponent<ZNetView>();
         m_piece = gameObject.GetComponent<Piece>();
+        if (!m_nview || m_nview.m_ghost) return;
         if (m_nview.GetZDO() == null) return;
         if (m_nview.IsOwner() && m_nview.GetZDO().GetFloat(ZDOVars.s_fuel, -1f) == -1)
         {
@@ -42,7 +45,7 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
 
     public string GetHoverText()
     {
-        if (!m_nview.IsValid() || m_infiniteFuel) return string.Empty;
+        if (!m_nview || m_nview.m_ghost || !m_nview.IsValid() || m_infiniteFuel) return string.Empty;
         return Localization.instance.Localize(m_name + " ( $piece_fire_fuel "
                                                      + Mathf.Ceil(m_nview.GetZDO().GetFloat(ZDOVars.s_fuel)) + "/"
                                                      + (int)m_maxFuel
@@ -110,29 +113,29 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
         return false;
     }
 
-    public void UpdateState()
+    public override void SUpdate()
     {
-        var zone = instance.GetZone(transform.position);
+        var zone = transform.position.GetZone();
         if (IsBurning())
         {
             if (m_renderer && matColor != Color.clear && m_renderer.material.HasProperty("_EmissionColor"))
                 m_renderer.material.SetColor("_EmissionColor", matColor);
 
-            if (!ForceActive.Contains(zone)) ForceActive.Add(zone);
-            if (!ForceActiveBuffer.Contains(zone)) ForceActiveBuffer.Add(zone);
+            m_nview.GetZDO().Set(burningZDOKey, true);
         } else
         {
             if (m_renderer && m_renderer.material.HasProperty("_EmissionColor"))
                 m_renderer.material.SetColor("_EmissionColor", Color.red * disabledEmission);
 
-            if (ForceActive.Contains(zone)) ForceActive.Remove(zone);
-            if (ForceActiveBuffer.Contains(zone)) ForceActiveBuffer.Remove(zone);
+            m_nview.GetZDO().Set(burningZDOKey, false);
         }
     }
 
-    public bool CanBeRemoved() { return !IsBurning(); }
-
-    public bool IsBurning() { return m_infiniteFuel || m_nview.GetZDO().GetFloat(ZDOVars.s_fuel) > 0.0; }
+    public bool IsBurning()
+    {
+        if (!m_nview || m_nview.m_ghost) return false;
+        return m_infiniteFuel || m_nview.GetZDO().GetFloat(ZDOVars.s_fuel) > 0.0;
+    }
 
     public void RPC_AddFuel(long sender)
     {
@@ -142,7 +145,7 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
         var num = Mathf.Clamp(Mathf.Clamp(f, 0, m_maxFuel) + 1f, 0, m_maxFuel);
         m_nview.GetZDO().Set(ZDOVars.s_fuel, num);
         m_fuelAddedEffects.Create(transform.position, transform.rotation);
-        UpdateState();
+        SUpdate();
     }
 
     public void UpdateFireplace()
@@ -162,7 +165,7 @@ public class ChunkLoaderMono : MonoBehaviour, Hoverable, Interactable
             }
         }
 
-        UpdateState();
+        SUpdate();
     }
 
     public double GetTimeSinceLastUpdate()

@@ -51,7 +51,7 @@
             <HintPath>..\..\..\Steam\steamapps\common\Valheim\BepInEx\core\BepInEx.dll</HintPath>
         </Reference>
         <Reference Include="JFUtils">
-            <HintPath>..\Utils\JFUtils.dll</HintPath>
+          <HintPath>..\Utils\JFUtils.dll</HintPath>
         </Reference>
         <Reference Include="LocalizationManager">
             <HintPath>..\Utils\LocalizationManager.dll</HintPath>
@@ -93,13 +93,11 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="ChunkLoaderMono.cs" />
-        <Compile Include="ConfigWrapper.cs" />
         <Compile Include="GlobalUsings.cs" />
         <Compile Include="MaterialReplacer.cs" />
-        <Compile Include="Patch\FixEffectsPatch.cs" />
+        <Compile Include="Patch\FixEffectsOnPiece.cs" />
         <Compile Include="Patch\LimitByPlayerPatch.cs" />
-        <Compile Include="Patch\LoadLoadersPatch.cs" />
-        <Compile Include="Patch\PlaceLoaderPatch.cs" />
+        <Compile Include="Patch\SetupPlacementGhost.cs" />
         <Compile Include="Patch\ZoneLimits.cs" />
         <Compile Include="PieceManager.cs" />
         <Compile Include="PlayerExtension.cs" />
