@@ -8,11 +8,11 @@ using static ChunkLoader.ChunkLoaderMono;
 namespace ChunkLoader;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
-[BepInDependency("com.Frogger.NoUselessWarnings", DependencyFlags.SoftDependency)]
+[BepInDependency("com.Frogger.NoUselessWarnings", DependencyFlags.HardDependency)]
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.3.0",
+        ModVersion = "1.4.0",
         ModGUID = $"com.{ModAuthor}.{ModName}",
         ModAuthor = "Frogger";
 
@@ -126,19 +126,16 @@ internal class Plugin : BaseUnityPlugin
 
     private void UpdateForceActive()
     {
-        try
-        {
-            if (ZDOMan.instance == null) return;
-            var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
-            ForceActive.Clear();
-            foreach (var zdo in zdos)
-                if (zdo.GetBool(ChunkLoaderMono.burningZDOKey))
-                    ForceActive.Add(zdo.GetPosition().GetZone());
-        }
-        catch (Exception e)
-        {
+        if (!Utility.TryDo(() =>
+            {
+                if (ZDOMan.instance == null) return;
+                var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
+                ForceActive.Clear();
+                foreach (var zdo in zdos)
+                    if (zdo.GetBool(ChunkLoaderMono.burningZDOKey, false))
+                        ForceActive.Add(zdo.GetPosition().GetZone());
+            }, out var e))
             DebugError($"Failed to update force active: {e.Message}");
-        }
     }
 
 

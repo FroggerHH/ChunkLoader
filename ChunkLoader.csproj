@@ -94,7 +94,6 @@
     <ItemGroup>
         <Compile Include="ChunkLoaderMono.cs" />
         <Compile Include="GlobalUsings.cs" />
-        <Compile Include="MaterialReplacer.cs" />
         <Compile Include="Patch\FixEffectsOnPiece.cs" />
         <Compile Include="Patch\LimitByPlayerPatch.cs" />
         <Compile Include="Patch\SetupPlacementGhost.cs" />
@@ -102,12 +101,8 @@
         <Compile Include="PieceManager.cs" />
         <Compile Include="PlayerExtension.cs" />
         <Compile Include="Plugin.cs" />
-        <Compile Include="ConfigurationManagerAttributes.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="SnapPointMaker.cs" />
-    </ItemGroup>
-    <ItemGroup>
-        <Folder Include="Build\" />
     </ItemGroup>
     <ItemGroup>
         <None Include="App.config" />

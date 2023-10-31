@@ -45,14 +45,20 @@ public class ChunkLoaderMono : SlowUpdate, Hoverable, Interactable
 
     public string GetHoverText()
     {
-        if (!m_nview || m_nview.m_ghost || !m_nview.IsValid() || m_infiniteFuel) return string.Empty;
-        return Localization.instance.Localize(m_name + " ( $piece_fire_fuel "
-                                                     + Mathf.Ceil(m_nview.GetZDO().GetFloat(ZDOVars.s_fuel)) + "/"
-                                                     + (int)m_maxFuel
-                                                     + " )\n[<color=yellow><b>$KEY_Use</b></color>] $piece_use "
-                                                     + m_fuelItem.m_itemData.m_shared.m_name
-                                                     + "\n[<color=yellow><b>1-8</b></color>] $piece_useitem"
-                                                     + "\n[<color=yellow><b>$KEY_AltPlace</b></color>] $showChunkArea");
+        if (!m_nview || m_nview.m_ghost || !m_nview.IsValid()) return string.Empty;
+        var result = m_name;
+        if (!m_infiniteFuel)
+        {
+            result += " ( $piece_fire_fuel "
+                      + Mathf.Ceil(m_nview.GetZDO().GetFloat(ZDOVars.s_fuel)) + "/"
+                      + (int)m_maxFuel
+                      + " )\n[<color=yellow><b>$KEY_Use</b></color>] $piece_use "
+                      + m_fuelItem.m_itemData.m_shared.m_name
+                      + "\n[<color=yellow><b>1-8</b></color>] $piece_useitem";
+        }
+
+        result += "\n[<color=yellow><b>$KEY_AltPlace</b></color>] $showChunkArea";
+        return result.Localize();
     }
 
     public string GetHoverName() { return m_name; }
