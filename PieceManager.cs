@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿#nullable enable
+using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
@@ -7,6 +8,10 @@ using System.Text.RegularExpressions;
 using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+// ReSharper disable Unity.NoNullPropagation
+// ReSharper disable Unity.InefficientPropertyAccess
+// ReSharper disable UnusedMember.Local
+// ReSharper disable CheckNamespace
 
 namespace PieceManager;
 
@@ -1106,7 +1111,6 @@ public class AdminSyncing
                 if (!piece.SpecialProperties.AdminOnly) continue;
                 var piecePrefab = piece.Prefab.GetComponent<Piece>();
                 var pieceName = piecePrefab.m_name;
-                var localizedName = Localization.instance.Localize(pieceName).Trim();
                 if (!ObjectDB.instance || ObjectDB.instance.GetItemPrefab("Wood") == null) continue;
                 foreach (var instantiatedPiece in FindObjectsOfType<Piece>())
                     if (admin)

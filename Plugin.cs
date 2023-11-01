@@ -12,7 +12,7 @@ namespace ChunkLoader;
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.4.0",
+        ModVersion = "1.4.1",
         ModGUID = $"com.{ModAuthor}.{ModName}",
         ModAuthor = "Frogger";
 
@@ -32,7 +32,6 @@ internal class Plugin : BaseUnityPlugin
         CreateMod(this, ModName, ModAuthor, ModVersion, ModGUID);
         EnableImportantZDOs();
         RegisterImportantZDO(prefabHash);
-        Debug("ChunkLoader_stone prefabHash = " + prefabHash);
         OnConfigurationChanged += UpdateConfiguration;
 
         chunkLoadersLimitByPlayer = config("Main", "ChunkLoaders limit by player", 2, "");
