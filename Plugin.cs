@@ -2,17 +2,16 @@
 using BepInEx.Configuration;
 using LocalizationManager;
 using PieceManager;
-using ServerSync;
 using static ChunkLoader.ChunkLoaderMono;
 
 namespace ChunkLoader;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
-[BepInDependency("com.Frogger.NoUselessWarnings", DependencyFlags.HardDependency)]
+[BepInDependency("com.Frogger.NoUselessWarnings")]
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.4.1",
+        ModVersion = "1.4.2",
         ModGUID = $"com.{ModAuthor}.{ModName}",
         ModAuthor = "Frogger";
 
@@ -31,7 +30,7 @@ internal class Plugin : BaseUnityPlugin
     {
         CreateMod(this, ModName, ModAuthor, ModVersion, ModGUID);
         EnableImportantZDOs();
-        RegisterImportantZDO(prefabHash);
+        RegisterImportantZDO(new ImportantZDO_Settings(prefabHash));
         OnConfigurationChanged += UpdateConfiguration;
 
         chunkLoadersLimitByPlayer = config("Main", "ChunkLoaders limit by player", 2, "");
@@ -131,7 +130,7 @@ internal class Plugin : BaseUnityPlugin
                 var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
                 ForceActive.Clear();
                 foreach (var zdo in zdos)
-                    if (zdo.GetBool(ChunkLoaderMono.burningZDOKey, false))
+                    if (zdo.GetBool(burningZDOKey))
                         ForceActive.Add(zdo.GetPosition().GetZone());
             }, out var e))
             DebugError($"Failed to update force active: {e.Message}");
@@ -144,8 +143,10 @@ internal class Plugin : BaseUnityPlugin
         if (objectDB)
         {
             var item = objectDB.GetItem(fuelItemConfig.Value);
-            if (item) m_fuelItem = item;
-            else
+            if (item)
+            {
+                m_fuelItem = item;
+            } else
             {
                 m_fuelItem = objectDB.GetItem("Thunderstone");
                 DebugWarning($"Item [{fuelItemConfig.Value}] not found. Using default [Thunderstone].");

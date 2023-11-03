@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using BepInEx;
 using BepInEx.Bootstrap;
 using BepInEx.Configuration;
+
 // ReSharper disable Unity.NoNullPropagation
 // ReSharper disable Unity.InefficientPropertyAccess
 // ReSharper disable UnusedMember.Local

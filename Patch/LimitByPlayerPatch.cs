@@ -3,17 +3,17 @@
 [HarmonyPatch]
 public class LimitByPlayerPatch
 {
-    [HarmonyPatch(typeof(Player), nameof(Player.UpdatePlacementGhost)), HarmonyPostfix]
-    private static void PatchUpdate(Player __instance) => TheCheck(__instance, false);
+    [HarmonyPatch(typeof(Player), nameof(Player.UpdatePlacementGhost))] [HarmonyPostfix]
+    private static void PatchUpdate(Player __instance) { TheCheck(__instance, false); }
 
 
-    [HarmonyPatch(typeof(Player), nameof(Player.PlacePiece)), HarmonyPrefix]
-    private static void PatchPlace(Player __instance) => TheCheck(__instance, true);
+    [HarmonyPatch(typeof(Player), nameof(Player.PlacePiece))] [HarmonyPrefix]
+    private static void PatchPlace(Player __instance) { TheCheck(__instance, true); }
 
     private static void TheCheck(Player __instance, bool showMessage)
     {
-        if (!Player.m_localPlayer || Player.m_localPlayer != __instance) return;
-        if (Player.m_debugMode) return;
+        if (!m_localPlayer || m_localPlayer != __instance) return;
+        if (m_debugMode) return;
         if (__instance.m_placementGhost?.GetPrefabName() != "ChunkLoader_stone") return;
         var piece = __instance.m_placementGhost?.GetComponent<Piece>();
         if (!piece) return;
@@ -21,16 +21,16 @@ public class LimitByPlayerPatch
         var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
         if (zdos.Any(x => x.GetPosition().GetZone() == m_localPlayer.transform.position.GetZone()))
         {
-            __instance.m_placementStatus = Player.PlacementStatus.Invalid;
+            __instance.m_placementStatus = Invalid;
             __instance.SetPlacementGhostValid(false);
             if (showMessage) Message("$chunkLoaderAlreadyPlacedInArea");
             return;
         }
 
-        zdos = zdos.Where(x => x.GetLong(ZDOVars.s_creator, 0) == Player.m_localPlayer.GetPlayerID()).ToHashSet();
+        zdos = zdos.Where(x => x.GetLong(ZDOVars.s_creator) == m_localPlayer.GetPlayerID()).ToHashSet();
         if (zdos.Count >= chunkLoadersLimitByPlayer.Value)
         {
-            __instance.m_placementStatus = Player.PlacementStatus.Invalid;
+            __instance.m_placementStatus = Invalid;
             __instance.SetPlacementGhostValid(false);
             if (showMessage) Message("$youHaveTooManyChunkLoadersPlaced");
         }

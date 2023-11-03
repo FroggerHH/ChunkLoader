@@ -48,14 +48,12 @@ public class ChunkLoaderMono : SlowUpdate, Hoverable, Interactable
         if (!m_nview || m_nview.m_ghost || !m_nview.IsValid()) return string.Empty;
         var result = m_name;
         if (!m_infiniteFuel)
-        {
             result += " ( $piece_fire_fuel "
                       + Mathf.Ceil(m_nview.GetZDO().GetFloat(ZDOVars.s_fuel)) + "/"
                       + (int)m_maxFuel
                       + " )\n[<color=yellow><b>$KEY_Use</b></color>] $piece_use "
                       + m_fuelItem.m_itemData.m_shared.m_name
                       + "\n[<color=yellow><b>1-8</b></color>] $piece_useitem";
-        }
 
         result += "\n[<color=yellow><b>$KEY_AltPlace</b></color>] $showChunkArea";
         return result.Localize();
@@ -81,19 +79,19 @@ public class ChunkLoaderMono : SlowUpdate, Hoverable, Interactable
         {
             if (Mathf.CeilToInt(m_nview.GetZDO().GetFloat(ZDOVars.s_fuel)) >= m_maxFuel)
             {
-                user.Message(MessageHud.MessageType.Center,
+                user.Message(Center,
                     Localization.instance.Localize("$msg_cantaddmore", m_fuelItem.m_itemData.m_shared.m_name));
                 return false;
             }
 
-            user.Message(MessageHud.MessageType.Center,
+            user.Message(Center,
                 Localization.instance.Localize("$msg_fireadding", m_fuelItem.m_itemData.m_shared.m_name));
             inventory.RemoveItem(m_fuelItem.m_itemData.m_shared.m_name, 1);
             m_nview.InvokeRPC("AddFuel");
             return true;
         }
 
-        user.Message(MessageHud.MessageType.Center, "$msg_outof " + m_fuelItem.m_itemData.m_shared.m_name);
+        user.Message(Center, "$msg_outof " + m_fuelItem.m_itemData.m_shared.m_name);
         return false;
     }
 
@@ -103,13 +101,13 @@ public class ChunkLoaderMono : SlowUpdate, Hoverable, Interactable
         {
             if (Mathf.CeilToInt(m_nview.GetZDO().GetFloat(ZDOVars.s_fuel)) >= m_maxFuel)
             {
-                user.Message(MessageHud.MessageType.Center,
+                user.Message(Center,
                     Localization.instance.Localize("$msg_cantaddmore", item.m_shared.m_name));
                 return true;
             }
 
             var inventory = user.GetInventory();
-            user.Message(MessageHud.MessageType.Center,
+            user.Message(Center,
                 Localization.instance.Localize("$msg_fireadding", item.m_shared.m_name));
             inventory.RemoveItem(item, 1);
             m_nview.InvokeRPC("AddFuel");

@@ -11,7 +11,7 @@ global using ScriptableObject = UnityEngine.ScriptableObject;
 global using static UnityEngine.ScriptableObject;
 global using JFUtils;
 global using JFUtils.Valheim;
-global using JFUtils.Valheim.WithPatch;
+global using JFUtils.WithPatch;
 global using static ZoneSystem;
 global using static JFUtils.ModBase;
 global using static ZoneSystem.ZoneLocation;
