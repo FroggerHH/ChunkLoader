@@ -48,7 +48,7 @@
             <HintPath>..\Utils\assembly_valheim_publicized.dll</HintPath>
         </Reference>
         <Reference Include="BepInEx">
-            <HintPath>..\..\..\Steam\steamapps\common\Valheim\BepInEx\core\BepInEx.dll</HintPath>
+          <HintPath>..\..\..\Steam\steamapps\common\Valheim\BepInEx\core\BepInEx.dll</HintPath>
         </Reference>
         <Reference Include="JFUtils">
             <HintPath>..\Utils\JFUtils.dll</HintPath>
@@ -96,6 +96,7 @@
         <Compile Include="GlobalUsings.cs"/>
         <Compile Include="Patch\FixEffectsOnPiece.cs"/>
         <Compile Include="Patch\LimitByPlayerPatch.cs"/>
+        <Compile Include="Patch\NoWarnings.cs" />
         <Compile Include="Patch\SetupPlacementGhost.cs"/>
         <Compile Include="Patch\ZoneLimits.cs"/>
         <Compile Include="PieceManager.cs"/>

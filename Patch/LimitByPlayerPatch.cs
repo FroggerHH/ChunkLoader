@@ -18,8 +18,7 @@ public class LimitByPlayerPatch
         var piece = __instance.m_placementGhost?.GetComponent<Piece>();
         if (!piece) return;
 
-        var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
-        if (zdos.Any(x => x.GetPosition().GetZone() == m_localPlayer.transform.position.GetZone()))
+        if (ForceActive.Contains(m_localPlayer.transform.position.GetZone()))
         {
             __instance.m_placementStatus = Invalid;
             __instance.SetPlacementGhostValid(false);
@@ -27,7 +26,7 @@ public class LimitByPlayerPatch
             return;
         }
 
-        zdos = zdos.Where(x => x.GetLong(ZDOVars.s_creator) == m_localPlayer.GetPlayerID()).ToHashSet();
+        var zdos = loadersZDOs.Where(x => x.GetLong(ZDOVars.s_creator) == m_localPlayer.GetPlayerID()).ToList();
         if (zdos.Count >= chunkLoadersLimitByPlayer.Value)
         {
             __instance.m_placementStatus = Invalid;

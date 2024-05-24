@@ -1,40 +1,27 @@
 ﻿namespace ChunkLoader;
 
-[HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.InActiveArea), typeof(Vector2i), typeof(Vector2i))]
-public class InActiveArea
+[HarmonyPatch]
+public class ForceActivePatches
 {
-    private static bool Prefix(Vector2i zone, Vector2i refCenterZone, ref bool __result)
+    [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.InActiveArea), typeof(Vector2i), typeof(Vector2i))]
+    [HarmonyPostfix]
+    private static void InActiveArea(Vector2i zone, ref bool __result)
     {
-        if (ForceActive.Contains(zone))
-        {
-            __result = true;
-            return false;
-        }
-
-        return true;
+        if (__result == true) return;
+        if (ForceActive.Contains(zone)) __result = true;
     }
-}
 
-[HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.OutsideActiveArea), typeof(Vector3), typeof(Vector3))]
-public class OutsideActiveArea
-{
-    private static bool Prefix(Vector3 point, Vector3 refPoint, ref bool __result)
+    [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.OutsideActiveArea), typeof(Vector3), typeof(Vector3))]
+    [HarmonyPostfix]
+    private static void OutsideActiveArea(Vector3 point, ref bool __result)
     {
-        var zone2 = instance.GetZone(point);
-        if (ForceActive.Contains(zone2))
-        {
-            __result = false;
-            return false;
-        }
-
-        return true;
+        if (__result == false) return;
+        if (ForceActive.Contains(ZoneSystem.instance.GetZone(point))) __result = false;
     }
-}
 
-[HarmonyPatch(typeof(ZDOMan), nameof(ZDOMan.FindSectorObjects))]
-public class FindSectorObjects
-{
-    private static void Postfix(ZDOMan __instance, Vector2i sector, int area, List<ZDO> sectorObjects)
+    [HarmonyPatch(typeof(ZDOMan), nameof(ZDOMan.FindSectorObjects))]
+    [HarmonyPostfix]
+    private static void FindSectorObjects(ZDOMan __instance, Vector2i sector, int area, List<ZDO> sectorObjects)
     {
         if (ForceActive.Count == 0) return;
         HashSet<Vector2i> added = new() { sector };
@@ -59,18 +46,16 @@ public class FindSectorObjects
             __instance.FindObjects(zone, sectorObjects);
         }
     }
-}
 
-[HarmonyPatch(typeof(ZDOMan), nameof(ZDOMan.FindDistantObjects))]
-public class FindDistantObjects
-{
-    private static bool Prefix(Vector2i sector) { return !ForceActive.Contains(sector); }
-}
 
-[HarmonyPatch(typeof(ZoneSystem), nameof(ZoneSystem.CreateLocalZones))]
-public class CreateLocalZones
-{
-    private static void Postfix(ZoneSystem __instance, ref bool __result)
+    [HarmonyPatch(typeof(ZDOMan), nameof(ZDOMan.FindDistantObjects))]
+    [HarmonyPrefix]
+    private static bool FindDistantObjects(Vector2i sector) => !ForceActive.Contains(sector);
+
+
+    [HarmonyPatch(typeof(ZoneSystem), nameof(ZoneSystem.CreateLocalZones))]
+    [HarmonyPostfix]
+    private static void CreateLocalZones(ZoneSystem __instance, ref bool __result)
     {
         if (ForceActive.Count == 0) return;
         if (__result) return;
@@ -81,12 +66,11 @@ public class CreateLocalZones
                 break;
             }
     }
-}
 
-[HarmonyPatch(typeof(ZoneSystem), nameof(ZoneSystem.IsActiveAreaLoaded))]
-public class IsActiveAreaLoaded
-{
-    private static void Postfix(ZoneSystem __instance, ref bool __result)
+
+    [HarmonyPatch(typeof(ZoneSystem), nameof(ZoneSystem.IsActiveAreaLoaded))]
+    [HarmonyPostfix]
+    private static void IsActiveAreaLoaded(ZoneSystem __instance, ref bool __result)
     {
         if (ForceActive.Count == 0) return;
         if (!__result) return;

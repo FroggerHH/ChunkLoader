@@ -1,22 +1,25 @@
-﻿using BepInEx;
+﻿using System.Threading.Tasks;
+using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using LocalizationManager;
-using PieceManager;
+using ChunkLoader.PieceManager;
 using static ChunkLoader.ChunkLoaderMono;
 
 namespace ChunkLoader;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
-[BepInDependency("com.Frogger.NoUselessWarnings")]
+[BepInDependency("com.Frogger.NoUselessWarnings", DependencyFlags.SoftDependency)]
 internal class Plugin : BaseUnityPlugin
 {
     internal const string ModName = "ChunkLoader",
-        ModVersion = "1.4.2",
+        ModVersion = "1.6.0",
         ModGUID = $"com.{ModAuthor}.{ModName}",
         ModAuthor = "Frogger";
 
     public static HashSet<Vector2i> ForceActive = new();
-    public static readonly int prefabHash = "ChunkLoader_stone".GetStableHashCode();
+    public static List<ZDO> loadersZDOs = new();
+    public static readonly string prefab = "ChunkLoader_stone";
 
     internal static ConfigEntry<int> chunkLoadersLimitByPlayer;
     internal static ConfigEntry<int> maxFuelConfig;
@@ -28,9 +31,7 @@ internal class Plugin : BaseUnityPlugin
 
     private void Awake()
     {
-        CreateMod(this, ModName, ModAuthor, ModVersion, ModGUID);
-        EnableImportantZDOs();
-        RegisterImportantZDO(new ImportantZDO_Settings(prefabHash));
+        CreateMod(this, ModName, ModAuthor, ModVersion, ModGUID, true);
         OnConfigurationChanged += UpdateConfiguration;
 
         chunkLoadersLimitByPlayer = config("Main", "ChunkLoaders limit by player", 2, "");
@@ -41,8 +42,20 @@ internal class Plugin : BaseUnityPlugin
         minutesForOneFuelItemConfig = config("Fuelling", "Minutes for one fuel item", 5, "");
         infiniteFuelConfig = config("Fuelling", "Infinite fuel", false, "");
 
-        #region Piece
+        Localizer.Load();
+        InvokeRepeating(nameof(UpdateForceActive), 5, 3);
+        StartCoroutine(WaiteForLoad());
+    }
 
+    private IEnumerator WaiteForLoad()
+    {
+        yield return new WaitUntil(() => Chainloader._loaded);
+        AddPiece();
+    }
+
+    internal static void AddPiece()
+    {
+        Debug($"Adding piece {prefab}");
         var piece = new BuildPiece("chunkloader", "ChunkLoader_stone");
         piece.Prefab.AddComponent<ChunkLoaderMono>();
         piece.Category.Set(BuildPieceCategory.Misc);
@@ -50,10 +63,9 @@ internal class Plugin : BaseUnityPlugin
         piece.RequiredItems.Add("Stone", 25, true);
         piece.RequiredItems.Add("Thunderstone", 5, true);
         piece.RequiredItems.Add("SurtlingCore", 1, true);
-        piece.SpecialProperties.NoConfig = false;
         piece.Name
-            .English("observation column")
-            .Swedish("observationskolumn")
+            .English("Observation column")
+            .Swedish("Observationskolumn")
             .French("colonne d'observation")
             .Italian("colonna di osservazione")
             .German("Beobachtungssäule")
@@ -115,25 +127,25 @@ internal class Plugin : BaseUnityPlugin
             .Greek("Η περιοχή γύρω από τη στήλη είναι πάντα ενεργή")
             .Serbian("Подручје око колоне је увек активно")
             .Ukrainian("Територія навколо колони завжди активна");
-
-        #endregion
-
-        Localizer.Load();
-        InvokeRepeating(nameof(UpdateForceActive), 5, 2);
     }
 
-    private void UpdateForceActive()
+    private async Task UpdateForceActive()
     {
-        if (!Utility.TryDo(() =>
-            {
-                if (ZDOMan.instance == null) return;
-                var zdos = ZDOMan.instance.GetImportantZDOs(prefabHash);
-                ForceActive.Clear();
-                foreach (var zdo in zdos)
-                    if (zdo.GetBool(burningZDOKey))
-                        ForceActive.Add(zdo.GetPosition().GetZone());
-            }, out var e))
+        try
+        {
+            if (ZDOMan.instance == null) return;
+            loadersZDOs = await ZoneSystem.instance.GetWorldObjectsAsync(prefab);
+            ForceActive.Clear();
+            foreach (var zdo in loadersZDOs)
+                if (zdo.GetBool(burningZDOKey))
+                    ForceActive.Add(zdo.GetPosition().GetZone());
+
+            // Debug($"ForceActive: {ForceActive.GetString()}");
+        }
+        catch (Exception e)
+        {
             DebugError($"Failed to update force active: {e.Message}");
+        }
     }
 
 
@@ -143,13 +155,11 @@ internal class Plugin : BaseUnityPlugin
         if (objectDB)
         {
             var item = objectDB.GetItem(fuelItemConfig.Value);
-            if (item)
-            {
-                m_fuelItem = item;
-            } else
+            if (item) m_fuelItem = item;
+            else
             {
                 m_fuelItem = objectDB.GetItem("Thunderstone");
-                DebugWarning($"Item [{fuelItemConfig.Value}] not found. Using default [Thunderstone].");
+                DebugWarning($"Item '{fuelItemConfig.Value}' not found. Using default 'Thunderstone'.");
             }
         }
 
